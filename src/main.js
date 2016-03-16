@@ -21,7 +21,16 @@ function main(sources) {
 
   const viewer = isolate(MultiGifViewer)({
     DOM, HTTP,
-    topics: ['crazy cats', 'cute cats', 'funny cats']
+    topics: ['crazy cats', 'cute cats']
+  });
+
+  /*
+   * Dynamic viewer
+   */
+
+  const dynamic = isolate(DynamicGifViewer)({
+    DOM, HTTP,
+    initialTopics: ['crazy cats', 'cute cats']
   });
 
   /*
