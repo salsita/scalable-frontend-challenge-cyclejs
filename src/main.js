@@ -62,14 +62,9 @@ function main(sources) {
    */
 
   const vtree$ = Rx.Observable.combineLatest(
-    button.DOM,  counter.DOM,  viewer.DOM,
-   (buttonVTree, counterVTree, viewerVTree) =>
-      div([
-        buttonVTree,
-        counterVTree,
-        viewerVTree
-      ])
-  );
+    button.DOM, counter.DOM, viewer.DOM
+  )
+  .map(vtrees => div(vtrees));
 
   /*
    * Sinks
