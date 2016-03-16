@@ -34,7 +34,7 @@ function main(sources) {
 
   const viewer = isolate(DynamicGifViewer)({
     DOM, HTTP,
-    initialTopics: ['crazy cats', 'cute cats']
+    initialTopics: ['crazy cats']
   });
 
   /*
