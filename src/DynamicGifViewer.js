@@ -14,8 +14,7 @@ export default function DynamicGifViewer(sources) {
    * Intent
    */
 
-  const click$ = DOM.select('.add-button').event('click');
-  const input$
+  const input = isolate(Input)({DOM});
 
   /*
    * Create child components
@@ -54,6 +53,7 @@ export default function DynamicGifViewer(sources) {
    * Composition - vtree$
    */
 
+  /*
   const vtree$ = children$
     .flatMap(children =>
       Rx.Observable.combineLatest(
@@ -61,6 +61,9 @@ export default function DynamicGifViewer(sources) {
       )
     )
     .map(vtrees => div(vtrees));
+  */
+
+  const vtree$ = input.DOM;
 
   /*
    * Sinks
