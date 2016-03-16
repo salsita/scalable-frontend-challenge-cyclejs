@@ -10,15 +10,18 @@ export default function Input(sources) {
    */
 
   const input$ = sources.DOM.select('.field').events('input')
+    .share()
     .do(_ => console.log('INPUT'));
 
   const click$ = sources.DOM.select('.btn').events('click')
+    .share()
     .do(_ => console.log('CLICK'));
 
   const action$ = Rx.Observable.merge(
     input$.map(ev => ({type: 'FIELD_CHANGED', payload: ev.target.value})),
     click$.map(ev => ({type: 'SUBMIT_CLICKED'}))
-  );
+  )
+  .share();
 
   /*
    * Model
@@ -65,5 +68,5 @@ export default function Input(sources) {
     .filter(state => state.submitted)
     .map(state => state.value);
 
-  return {DOM: vtree$, submit$};
+  return {DOM: vtree$, submit$: submit$.share()};
 }
