@@ -17,7 +17,7 @@ export default function DynamicGifViewer(sources) {
    * Intent
    */
 
-  const input = isolate(Input)({DOM});
+  const input = isolate(Input, 'dynamic-input')({DOM});
 
   /*
    * Create child components

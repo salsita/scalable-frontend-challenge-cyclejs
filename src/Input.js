@@ -17,7 +17,10 @@ export default function Input(sources) {
   const action$ = Rx.Observable.merge(
     input$.map(value => ({type: 'FIELD_CHANGED', payload: value})),
     click$.map(ev => ({type: 'SUBMIT_CLICKED'}))
-  );
+  )
+  .startWith('FOO');
+
+  action$.subscribe(action => console.log('action$', action));
 
   /*
    * Model
