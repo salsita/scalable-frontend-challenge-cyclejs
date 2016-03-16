@@ -6,15 +6,15 @@ import Rx from 'rx';
 import GifViewer from './GifViewer';
 
 
-export default function TrippleGifViewer(sources) {
+export default function MultiGifViewer(sources) {
 
-  const { DOM, HTTP } = sources;
+  const { DOM, HTTP, topics } = sources;
 
   /*
    * Create child components
    */
 
-  const children = ['crazy cats', 'cute cats', 'funny cats']
+  const children = topics
     .map(topic => isolate(GifViewer, topic.replace(' ', '-'))({DOM, HTTP, topic}));
 
   /*

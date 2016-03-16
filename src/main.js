@@ -8,7 +8,7 @@ import Rx from 'rx';
 
 import ActivationButton from './ActivationButton';
 import Counter from './Counter';
-import TrippleGifViewer from './TrippleGifViewer';
+import MultiGifViewer from './MultiGifViewer';
 
 
 function main(sources) {
@@ -19,7 +19,10 @@ function main(sources) {
    * Viewer
    */
 
-  const viewer = isolate(TrippleGifViewer)({DOM, HTTP});
+  const viewer = isolate(MultiGifViewer)({
+    DOM, HTTP,
+    topics: ['crazy cats', 'cute cats', 'funny cats']
+  });
 
   /*
    * Activation button
