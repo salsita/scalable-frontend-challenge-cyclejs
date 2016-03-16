@@ -11,6 +11,13 @@ export default function DynamicGifViewer(sources) {
   const { DOM, HTTP, topics$ } = sources;
 
   /*
+   * Intent
+   */
+
+  const click$ = DOM.select('.add-button').event('click');
+  const input$
+
+  /*
    * Create child components
    */
 
