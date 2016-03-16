@@ -4,11 +4,14 @@ import { div } from '@cycle/dom';
 import Rx from 'rx';
 
 import GifViewer from './GifViewer';
+import Input from './Input';
 
 
 export default function DynamicGifViewer(sources) {
 
-  const { DOM, HTTP, topics$ } = sources;
+  const { DOM, HTTP, initialTopics } = sources;
+
+  const topics$ = Rx.Observable.of(initialTopics);
 
   /*
    * Intent

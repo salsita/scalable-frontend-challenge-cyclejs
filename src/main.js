@@ -8,6 +8,7 @@ import Rx from 'rx';
 
 import ActivationButton from './ActivationButton';
 import Counter from './Counter';
+import DynamicGifViewer from './DynamicGifViewer';
 import MultiGifViewer from './MultiGifViewer';
 
 

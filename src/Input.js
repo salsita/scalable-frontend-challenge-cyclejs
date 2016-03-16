@@ -9,16 +9,14 @@ export default function Input(sources) {
    * Intent
    */
 
-  const input$ = sources.DOM.select('.input-field').event('input');
-  const click$ = sources.DOM.select('.submit-button').event('click');
+  const input$ = sources.DOM.select('.field').events('input')
+    .map(ev => ev.target.value);
+
+  const click$ = sources.DOM.select('.btn').events('click');
 
   const action$ = Rx.Observable.merge(
-    input$
-      .map(ev => ev.target.value)
-      .startWith('')
-      .map(value => ({type: 'FIELD_CHANGED', payload: value})),
-    click$
-      .map(ev => ({type: 'SUBMIT_CLICKED'}))
+    input$.map(value => ({type: 'FIELD_CHANGED', payload: value})),
+    click$.map(ev => ({type: 'SUBMIT_CLICKED'}))
   );
 
   /*
@@ -26,7 +24,7 @@ export default function Input(sources) {
    */
 
   const state$ = action$
-    .scan((state, action) => {
+    .scan((_, action) => {
       const { type, payload } = action;
       switch (type) {
         case 'FIELD_CHANGED':
@@ -34,7 +32,8 @@ export default function Input(sources) {
         case 'SUBMIT_CLICKED':
           return '';
       }
-    });
+    })
+    .startWith('');
 
   /*
    * View
@@ -43,8 +42,8 @@ export default function Input(sources) {
   const vtree$ = state$
     .map(state =>
       div([
-        input({className: 'input-field', type: 'text', value: state}),
-        button({className: 'submit-button', type: 'submit'})
+        input('.field', {type: 'text'}),
+        button('.btn', {type: 'submit'}, 'Submit')
       ])
     );
 
@@ -52,6 +51,7 @@ export default function Input(sources) {
    * Sinks
    */
 
+  /*
   const submit$ = action$
     .scan((state, action) => {
       const { type, payload } = action;
@@ -61,10 +61,10 @@ export default function Input(sources) {
         case 'SUBMIT_CLICKED':
           return {value: state.value, submitted: true};
       }
-    });
+    })
     .filter(state => state.submitted)
     .map(state => state.value);
+  */
 
-
-  return {DOM: vtree$, submit$};
+  return {DOM: vtree$};
 }
