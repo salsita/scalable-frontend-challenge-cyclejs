@@ -11,17 +11,23 @@ export default function DynamicGifViewer(sources) {
 
   const { DOM, HTTP, initialTopics } = sources;
 
-  const topics$ = Rx.Observable.of(initialTopics);
-
   /*
-   * Intent
+   * Input
    */
 
-  const input = isolate(Input, 'dynamic-input')({DOM});
+  const input = isolate(Input)({DOM});
 
   /*
-   * Create child components
+   * Viewers
    */
+
+  const topics$ = input.submit$
+    .do(submit => console.log('submit$', submit))
+    .scan((topics, submitted) => {
+      topics.push(submitted);
+      return topics;
+    }, initialTopics)
+    .startWith(initialTopics);
 
   const children$ = topics$
     .map(topics =>
@@ -56,17 +62,13 @@ export default function DynamicGifViewer(sources) {
    * Composition - vtree$
    */
 
-  /*
   const vtree$ = children$
     .flatMap(children =>
       Rx.Observable.combineLatest(
         ...children.map(child => child.DOM)
       )
     )
-    .map(vtrees => div(vtrees));
-  */
-
-  const vtree$ = input.DOM;
+    .map(vtrees => div([input.DOM, ...vtrees]));
 
   /*
    * Sinks

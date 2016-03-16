@@ -9,6 +9,7 @@ import Rx from 'rx';
 import ActivationButton from './ActivationButton';
 import Counter from './Counter';
 import DynamicGifViewer from './DynamicGifViewer';
+import Input from './Input';
 import MultiGifViewer from './MultiGifViewer';
 
 
@@ -20,16 +21,18 @@ function main(sources) {
    * Viewer
    */
 
+  /*
   const viewer = isolate(MultiGifViewer)({
     DOM, HTTP,
     topics: ['crazy cats', 'cute cats']
   });
+  */
 
   /*
    * Dynamic viewer
    */
 
-  const dynamic = isolate(DynamicGifViewer)({
+  const viewer = isolate(DynamicGifViewer)({
     DOM, HTTP,
     initialTopics: ['crazy cats', 'cute cats']
   });
@@ -72,7 +75,7 @@ function main(sources) {
    */
 
   const vtree$ = Rx.Observable.combineLatest(
-    button.DOM, counter.DOM, viewer.DOM, dynamic.DOM
+    button.DOM, counter.DOM, viewer.DOM
   )
   .map(vtrees => div(vtrees));
 
