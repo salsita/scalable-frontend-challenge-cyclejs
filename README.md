@@ -1,6 +1,6 @@
-# Scalable Frontend Using Cycle.js
+# Scalable Frontend with Cycle.js
 
-Implementing the [scalable frontend challenge](https://github.com/slorber/scalable-frontend-with-elm-or-redux) using [Cycle.js](cycle.js.org).
+Implementing the [scalable frontend](https://github.com/slorber/scalable-frontend-with-elm-or-redux) challenge using [Cycle.js](cycle.js.org).
 
 ## Setup ##
 
@@ -8,6 +8,7 @@ Implementing the [scalable frontend challenge](https://github.com/slorber/scalab
 2. `npm install`
 3. `npm run pack`
 4. Open `dist/index.html` in your browser.
+
 
 ## License ##
 
