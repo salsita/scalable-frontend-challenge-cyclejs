@@ -44,7 +44,6 @@ export default function DynamicGifViewer(sources) {
       viewer.DOM.subscribe(vtree => vtreeSub.onNext({type: 'UPDATED', payload: {id, vtree}})),
 
       viewer.remove$.subscribe(() => {
-        console.log('remove$ OUTER');
         subs[id].map(sub => sub.dispose());
         delete subs[id];
         vtreeSub.onNext({type: 'REMOVAL_REQUESTED', payload: {id}});
@@ -67,11 +66,10 @@ export default function DynamicGifViewer(sources) {
       const { type, payload } = action;
       switch (type) {
         case 'UPDATED':
-          const { id, vtree } = payload;
           if (!state.vtrees[payload.id]) {
             state.order.push(payload.id);
           }
-          state.vtrees[id] = payload.vtree;
+          state.vtrees[payload.id] = payload.vtree;
           return state;
         case 'REMOVAL_REQUESTED':
           console.log('EXEC REMOVE', payload.id);
