@@ -2,9 +2,10 @@ import isolate from '@cycle/isolate';
 import { div } from '@cycle/dom';
 
 import Rx from 'rx';
+import Uuid from 'uuid';
 
-import GifViewer from './GifViewer';
 import Input from './Input';
+import RemovableGifViewer from './RemovableGifViewer';
 
 
 export default function DynamicGifViewer(sources) {
@@ -15,43 +16,45 @@ export default function DynamicGifViewer(sources) {
    * Input
    */
 
-  const input = isolate(Input)({DOM});
+  const input = isolate(Input, Uuid.v4())({DOM});
 
   /*
-   * Subject - requests$
+   * Subjects
    */
 
-  const requestSub = new Rx.ReplaySubject();
-
-  /*
-   * Subject - morePlease$
-   */
-
+  const requestSub    = new Rx.ReplaySubject();
   const morePleaseSub = new Rx.ReplaySubject();
-
-  /*
-   * Subject - vtree$
-   */
-
-  const vtreeSub = new Rx.ReplaySubject();
+  const vtreeSub      = new Rx.ReplaySubject();
 
   /*
    * Viewers
    */
 
-  const viewers = [];
+  const subs = [];
 
-  const newViewer = (topic, index) => {
-    const child = isolate(GifViewer, topic.replace(' ', '-'))({DOM, HTTP, topic});
-    child.DOM.subscribe(vtree => vtreeSub.onNext({vtree, index}));
-    child.HTTP.subscribe(req => requestSub.onNext(req));
-    child.morePlease$.subscribe(() => morePleaseSub.onNext(null));
-    viewers.push(child);
+  const appendViewer = topic => {
+    const index = subs.length;
+    const viewer = isolate(RemovableGifViewer, Uuid.v4())({DOM, HTTP, topic});
+
+    subs.push([
+      viewer.HTTP.subscribe(request => requestSub.onNext(request)),
+
+      viewer.morePlease$.subscribe(() => morePleaseSub.onNext('MORE PLEASE!')),
+
+      viewer.DOM.subscribe(vtree => vtreeSub.onNext({type: 'UPDATED', payload: {index, vtree}})),
+
+      viewer.remove$.subscribe(() => {
+        subs[index].map(sub => sub.dispose());
+        subs.splice(index, 1);
+        vtreeSub.onNext({type: 'REMOVAL_REQUESTED', payload: {index}});
+      })
+    ]);
   }
 
-  const appendViewer = topic => newViewer(topic, viewers.length);
+  // Create initial list of viewers.
+  initialTopics.map(topic => appendViewer(topic));
 
-  initialTopics.map(appendViewer);
+  // Append a new viewer when a new topic is added.
   input.submit$.subscribe(topic => appendViewer(topic));
 
   /*
@@ -59,10 +62,16 @@ export default function DynamicGifViewer(sources) {
    */
 
   const vtree$ = vtreeSub
-    .scan((acc, next) => {
-      const { vtree, index } = next;
-      acc[index] = vtree;
-      return acc;
+    .scan((state, action) => {
+      const { type, payload } = action;
+      switch (type) {
+        case 'UPDATED':
+          state[payload.index] = payload.vtree;
+          return state;
+        case 'REMOVAL_REQUESTED':
+          state.splice(payload.index, 1);
+          return state;
+      }
     }, [])
     .map(vtrees => div([input.DOM, ...vtrees]));
 
