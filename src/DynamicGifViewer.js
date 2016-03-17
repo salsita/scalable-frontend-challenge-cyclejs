@@ -18,19 +18,19 @@ export default function DynamicGifViewer(sources) {
   const input = isolate(Input)({DOM});
 
   /*
-   * Composition - HTTP
+   * Subject - requests$
    */
 
   const requestSub = new Rx.ReplaySubject();
 
   /*
-   * Composition - morePlease$
+   * Subject - morePlease$
    */
 
   const morePleaseSub = new Rx.ReplaySubject();
 
   /*
-   * Composition - vtree$
+   * Subject - vtree$
    */
 
   const vtreeSub = new Rx.ReplaySubject();
@@ -53,6 +53,10 @@ export default function DynamicGifViewer(sources) {
 
   initialTopics.map(appendViewer);
   input.submit$.subscribe(topic => appendViewer(topic));
+
+  /*
+   * View
+   */
 
   const vtree$ = vtreeSub
     .scan((acc, next) => {
