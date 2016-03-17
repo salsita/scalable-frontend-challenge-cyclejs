@@ -34,7 +34,7 @@ export default function DynamicGifViewer(sources) {
 
   const appendViewer = topic => {
     const id = Uuid.v4();
-    const viewer = isolate(RemovableGifViewer, id)({DOM, HTTP, topic});
+    const viewer = isolate(RemovableGifViewer, id)({DOM, HTTP, topic, id});
 
     subs[id] = [
       viewer.HTTP.subscribe(request => requestSub.onNext(request)),
