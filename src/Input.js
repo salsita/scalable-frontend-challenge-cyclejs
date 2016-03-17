@@ -11,17 +11,17 @@ export default function Input(sources) {
 
   const input$ = sources.DOM.select('.field').events('input')
     .share()
-    .do(_ => console.log('INPUT'));
+    .map(ev => ev.target.value);
 
   const click$ = sources.DOM.select('.btn').events('click')
-    .share()
-    .do(_ => console.log('CLICK'));
+    .share();
 
   const action$ = Rx.Observable.merge(
-    input$.map(ev => ({type: 'FIELD_CHANGED', payload: ev.target.value})),
-    click$.map(ev => ({type: 'SUBMIT_CLICKED'}))
+    input$.map(value => ({type: 'FIELD_CHANGED', payload: value})),
+    click$.map(() => ({type: 'SUBMIT_CLICKED'}))
   )
-  .share();
+  .share()
+  .do(action => console.log('action$', action));
 
   /*
    * Model
@@ -55,6 +55,7 @@ export default function Input(sources) {
    * Sinks
    */
 
+  /*
   const submit$ = action$
     .scan((state, action) => {
       const { type, payload } = action;
@@ -66,7 +67,16 @@ export default function Input(sources) {
       }
     })
     .filter(state => state.submitted)
-    .map(state => state.value);
+    .map(state => state.value)
+    .do(submitted => console.log('submit$', submitted));
+  */
 
-  return {DOM: vtree$, submit$: submit$.share()};
+  const submit$ = input$
+    .buffer(() => click$)
+    .filter(buffer => buffer.length !== 0)
+    .map(buffer => buffer[buffer.length-1])
+    .share()
+    .do(topic => console.log('submit$', topic));
+
+  return {DOM: vtree$.share(), submit$: submit$.share()};
 }

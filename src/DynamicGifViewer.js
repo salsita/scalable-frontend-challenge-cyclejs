@@ -22,7 +22,6 @@ export default function DynamicGifViewer(sources) {
    */
 
   const topics$ = input.submit$
-    .do(submit => console.log('submit$', submit))
     .scan((topics, submitted) => {
       topics.push(submitted);
       return topics;
