@@ -72,8 +72,3 @@ export default function DynamicGifViewer(sources) {
     morePlease$: morePleaseSub
   };
 }
-
-const append = (array, item) => {
-  array.push(item);
-  return array;
-}
