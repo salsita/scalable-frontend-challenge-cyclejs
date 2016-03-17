@@ -22,11 +22,10 @@ export default function DynamicGifViewer(sources) {
    */
 
   const topics$ = input.submit$
-    .scan((topics, submitted) => {
-      topics.push(submitted);
-      return topics;
-    }, initialTopics)
-    .startWith(initialTopics);
+    .scan((topics, submitted) => append(topics, submitted), initialTopics)
+    .startWith(initialTopics)
+    .shareReplay(1)
+    .do(ts => console.log('topics$', ts));
 
   const children$ = topics$
     .map(topics =>
@@ -44,7 +43,8 @@ export default function DynamicGifViewer(sources) {
       Rx.Observable.merge(
         ...children.map(child => child.HTTP)
       )
-    );
+    )
+    .do(req => console.log('requests$', req));
 
   /*
    * Composition - morePlease$
@@ -74,4 +74,9 @@ export default function DynamicGifViewer(sources) {
    */
 
   return {DOM: vtree$, HTTP: requests$, morePlease$};
+}
+
+const append = (array, item) => {
+  array.push(item);
+  return array;
 }

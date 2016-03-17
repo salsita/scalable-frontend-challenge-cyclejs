@@ -17,6 +17,7 @@ export default function GifViewer(sources) {
     // Map responses to the associated image URLs.
     .map(res => res.body.data.image_url)
     // Start with the loading animation initially.
+    .do(src => console.log(`src$ (${topic}): ${src}`))
     .startWith('./loading.gif');
 
   /*
@@ -59,7 +60,8 @@ export default function GifViewer(sources) {
         api_key: 'dc6zaTOxFJmzC',
         tag: topic
       }
-    }));
+    }))
+    .do(req => console.log(`requests$ (${topic}):`, req));
 
   /*
    * Sinks
