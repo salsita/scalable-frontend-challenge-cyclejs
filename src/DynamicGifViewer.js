@@ -21,18 +21,15 @@ export default function DynamicGifViewer(sources) {
    * Viewers
    */
 
-  const topics$ = input.submit$
-    .scan((topics, submitted) => append(topics, submitted), initialTopics)
-    .startWith(initialTopics)
-    .shareReplay(1)
-    .do(ts => console.log('topics$', ts));
+  const newViewer = topic => isolate(GifViewer, topic.replace(' ', '-'))({DOM, HTTP, topic});
 
-  const children$ = topics$
-    .map(topics =>
-      topics.map(topic =>
-        isolate(GifViewer, topic.replace(' ', '-'))({DOM, HTTP, topic})
-      )
-    );
+  const initialChildren = initialTopics.map(newViewer);
+
+  const children$ = input.submit$
+    .scan((children, submitted) => append(children, newViewer(submitted)), initialChildren)
+    .startWith(initialChildren)
+    .shareReplay(1)
+    .do(children => console.log('children$', children));
 
   /*
    * Composition - HTTP
@@ -43,8 +40,7 @@ export default function DynamicGifViewer(sources) {
       Rx.Observable.merge(
         ...children.map(child => child.HTTP)
       )
-    )
-    .do(req => console.log('requests$', req));
+    );
 
   /*
    * Composition - morePlease$
