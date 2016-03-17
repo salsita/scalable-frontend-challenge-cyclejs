@@ -30,25 +30,26 @@ export default function DynamicGifViewer(sources) {
    * Viewers
    */
 
-  const subs = [];
+  const subs = {};
 
   const appendViewer = topic => {
-    const index = subs.length;
-    const viewer = isolate(RemovableGifViewer, Uuid.v4())({DOM, HTTP, topic});
+    const id = Uuid.v4();
+    const viewer = isolate(RemovableGifViewer, id)({DOM, HTTP, topic});
 
-    subs.push([
+    subs[id] = [
       viewer.HTTP.subscribe(request => requestSub.onNext(request)),
 
       viewer.morePlease$.subscribe(() => morePleaseSub.onNext('MORE PLEASE!')),
 
-      viewer.DOM.subscribe(vtree => vtreeSub.onNext({type: 'UPDATED', payload: {index, vtree}})),
+      viewer.DOM.subscribe(vtree => vtreeSub.onNext({type: 'UPDATED', payload: {id, vtree}})),
 
       viewer.remove$.subscribe(() => {
-        subs[index].map(sub => sub.dispose());
-        subs.splice(index, 1);
-        vtreeSub.onNext({type: 'REMOVAL_REQUESTED', payload: {index}});
+        console.log('remove$ OUTER');
+        subs[id].map(sub => sub.dispose());
+        delete subs[id];
+        vtreeSub.onNext({type: 'REMOVAL_REQUESTED', payload: {id}});
       })
-    ]);
+    ];
   }
 
   // Create initial list of viewers.
@@ -66,13 +67,20 @@ export default function DynamicGifViewer(sources) {
       const { type, payload } = action;
       switch (type) {
         case 'UPDATED':
-          state[payload.index] = payload.vtree;
+          const { id, vtree } = payload;
+          if (!state.vtrees[payload.id]) {
+            state.order.push(payload.id);
+          }
+          state.vtrees[id] = payload.vtree;
           return state;
         case 'REMOVAL_REQUESTED':
-          state.splice(payload.index, 1);
+          console.log('EXEC REMOVE', payload.id);
+          delete state.vtrees[payload.id];
+          state.order = state.order.filter(x => x !== payload.id);
           return state;
       }
-    }, [])
+    }, {vtrees: {}, order: []})
+    .map(state => state.order.map(id => state.vtrees[id]))
     .map(vtrees => div([input.DOM, ...vtrees]));
 
   /*
