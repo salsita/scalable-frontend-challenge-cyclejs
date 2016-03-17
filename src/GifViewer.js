@@ -17,8 +17,7 @@ export default function GifViewer(sources) {
     // Map responses to the associated image URLs.
     .map(res => res.body.data.image_url)
     // Start with the loading animation initially.
-    .do(src => console.log(`src$ (${topic}): ${src}`))
-    .startWith('./loading.gif');
+    .do(src => console.log(`src$ (${topic}): ${src}`));
 
   /*
    * Intent
@@ -30,7 +29,9 @@ export default function GifViewer(sources) {
    * Model
    */
 
-  const state$ = src$.map(src => ({src}));
+  const state$ = src$
+    .map(src => ({src}))
+    .startWith({src: './loading.gif'});
 
   /*
    * View
@@ -43,7 +44,8 @@ export default function GifViewer(sources) {
         img('.gif-view', {src: state.src}),
         button('.more-please', 'More please!')
       ])
-    );
+    )
+    .do(req => console.log(`vtree$ (${topic}):`, req))
 
   /*
    * HTTP - outgoing
@@ -61,7 +63,7 @@ export default function GifViewer(sources) {
         tag: topic
       }
     }))
-    .do(req => console.log(`requests$ (${topic}):`, req));
+    .do(req => console.log(`requests$ (${topic}):`, req))
 
   /*
    * Sinks

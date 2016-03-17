@@ -18,58 +18,59 @@ export default function DynamicGifViewer(sources) {
   const input = isolate(Input)({DOM});
 
   /*
-   * Viewers
-   */
-
-  const newViewer = topic => isolate(GifViewer, topic.replace(' ', '-'))({DOM, HTTP, topic});
-
-  const initialChildren = initialTopics.map(newViewer);
-
-  const children$ = input.submit$
-    .scan((children, submitted) => append(children, newViewer(submitted)), initialChildren)
-    .startWith(initialChildren)
-    .shareReplay(1)
-    .do(children => console.log('children$', children));
-
-  /*
    * Composition - HTTP
    */
 
-  const requests$ = children$
-    .flatMap(children =>
-      Rx.Observable.merge(
-        ...children.map(child => child.HTTP)
-      )
-    );
+  const requestSub = new Rx.ReplaySubject();
 
   /*
    * Composition - morePlease$
    */
 
-  const morePlease$ = children$
-    .flatMap(children =>
-      Rx.Observable.merge(
-        ...children.map(child => child.morePlease$)
-      )
-    );
+  const morePleaseSub = new Rx.ReplaySubject();
 
   /*
    * Composition - vtree$
    */
 
-  const vtree$ = children$
-    .flatMap(children =>
-      Rx.Observable.combineLatest(
-        ...children.map(child => child.DOM)
-      )
-    )
+  const vtreeSub = new Rx.ReplaySubject();
+
+  /*
+   * Viewers
+   */
+
+  const viewers = [];
+
+  const newViewer = (topic, index) => {
+    const child = isolate(GifViewer, topic.replace(' ', '-'))({DOM, HTTP, topic});
+    child.DOM.subscribe(vtree => vtreeSub.onNext({vtree, index}));
+    child.HTTP.subscribe(req => requestSub.onNext(req));
+    child.morePlease$.subscribe(() => morePleaseSub.onNext(null));
+    viewers.push(child);
+  }
+
+  const appendViewer = topic => newViewer(topic, viewers.length);
+
+  initialTopics.map(appendViewer);
+  input.submit$.subscribe(topic => appendViewer(topic));
+
+  const vtree$ = vtreeSub
+    .scan((acc, next) => {
+      const { vtree, index } = next;
+      acc[index] = vtree;
+      return acc;
+    }, [])
     .map(vtrees => div([input.DOM, ...vtrees]));
 
   /*
    * Sinks
    */
 
-  return {DOM: vtree$, HTTP: requests$, morePlease$};
+  return {
+    DOM: vtree$,
+    HTTP: requestSub,
+    morePlease$: morePleaseSub
+  };
 }
 
 const append = (array, item) => {
