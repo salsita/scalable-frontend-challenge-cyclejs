@@ -30,25 +30,14 @@ export default function DynamicGifViewer(sources) {
    * Viewers
    */
 
-  const subs = {};
-
   const appendViewer = topic => {
     const id = Uuid.v4();
     const viewer = isolate(RemovableGifViewer, id)({DOM, HTTP, topic, id});
 
-    subs[id] = [
-      viewer.HTTP.subscribe(request => requestSub.onNext(request)),
-
-      viewer.morePlease$.subscribe(() => morePleaseSub.onNext('MORE PLEASE!')),
-
-      viewer.DOM.subscribe(vtree => vtreeSub.onNext({type: 'UPDATED', payload: {id, vtree}})),
-
-      viewer.remove$.subscribe(() => {
-        subs[id].map(sub => sub.dispose());
-        delete subs[id];
-        vtreeSub.onNext({type: 'REMOVAL_REQUESTED', payload: {id}});
-      })
-    ];
+    viewer.HTTP.subscribe(request => requestSub.onNext(request));
+    viewer.morePlease$.subscribe(() => morePleaseSub.onNext('MORE PLEASE!'));
+    viewer.DOM.subscribe(vtree => vtreeSub.onNext({type: 'UPDATED', payload: {id, vtree}}));
+    viewer.remove$.subscribe(() => vtreeSub.onNext({type: 'REMOVAL_REQUESTED', payload: {id}}));
   }
 
   // Create initial list of viewers.
@@ -62,23 +51,24 @@ export default function DynamicGifViewer(sources) {
    */
 
   const vtree$ = vtreeSub
+    .do(action => console.log('vtreeSub', action))
     .scan((state, action) => {
       const { type, payload } = action;
       switch (type) {
         case 'UPDATED':
-          if (!state.vtrees[payload.id]) {
-            state.order.push(payload.id);
+          for (let i in state) {
+            if (state[i].id === payload.id) {
+              state[i].vtree = payload.vtree;
+              return state;
+            }
           }
-          state.vtrees[payload.id] = payload.vtree;
+          state.push(payload);
           return state;
         case 'REMOVAL_REQUESTED':
-          console.log('EXEC REMOVE', payload.id);
-          delete state.vtrees[payload.id];
-          state.order = state.order.filter(x => x !== payload.id);
-          return state;
+          return state.filter(viewer => viewer.id !== payload.id);
       }
-    }, {vtrees: {}, order: []})
-    .map(state => state.order.map(id => state.vtrees[id]))
+    }, [])
+    .map(viewers => viewers.map(viewer => viewer.vtree))
     .map(vtrees => div([input.DOM, ...vtrees]));
 
   /*
