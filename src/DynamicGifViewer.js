@@ -23,8 +23,8 @@ export default function DynamicGifViewer(sources) {
    */
 
   const requestSub    = new Rx.ReplaySubject();
-  const morePleaseSub = new Rx.ReplaySubject();
-  const vtreeSub      = new Rx.ReplaySubject();
+  const morePleaseSub = new Rx.Subject();
+  const vtreeSub      = new Rx.Subject();
 
   /*
    * Viewers
